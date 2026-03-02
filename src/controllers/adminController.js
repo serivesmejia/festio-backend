@@ -77,3 +77,23 @@ export const getAllConcertsAdmin = async (req, res) => {
     res.status(500).json({ message: "Database error" });
   }
 };
+
+export const getAdminData = async (req, res) => {
+  try {
+    // Todos los conciertos
+    const concerts = await sql`SELECT * FROM concerts ORDER BY fecha DESC`;
+
+    const tickets = await sql`
+      SELECT tickets.id, tickets.user_id, tickets.concert_id, tickets.quantity,
+             concerts.artista, concerts.ciudad, concerts.fecha
+      FROM tickets
+      JOIN concerts ON concerts.id = tickets.concert_id
+      ORDER BY concerts.fecha DESC
+    `;
+
+    res.json({ concerts, tickets });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Database error" });
+  }
+};
