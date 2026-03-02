@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const ticketController = require("../controllers/ticketController");
-const authMiddleware = require("../middleware/authMiddleware");
+const { protect } = require("../middleware/authMiddleware");
 
-router.post("/buy", authMiddleware, ticketController.buyTickets);
-router.get("/my", authMiddleware, ticketController.getMyTickets);
+// Rutas protegidas
+router.post("/buy", protect, ticketController.buyTickets);
+router.get("/my", protect, ticketController.getMyTickets);
 
 module.exports = router;
