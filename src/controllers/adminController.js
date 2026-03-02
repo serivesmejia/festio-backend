@@ -1,56 +1,79 @@
-const pool = require("../db");
+import sql from "../db.js"; // tu conexión con postgres.js
 
 // Crear concierto
-exports.createConcert = async (req, res) => {
+export const createConcert = async (req, res) => {
   const { artista, ciudad, fecha, precio } = req.body;
 
   if (!artista || !ciudad || !fecha || !precio) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
-  const result = await pool.query(
-    "INSERT INTO concerts (artista, ciudad, fecha, precio) VALUES ($1,$2,$3,$4) RETURNING *",
-    [artista, ciudad, fecha, precio]
-  );
-
-  res.status(201).json(result.rows[0]);
+  try {
+    const [newConcert] = await sql`
+      INSERT INTO concerts (artista, ciudad, fecha, precio)
+      VALUES (${artista}, ${ciudad}, ${fecha}, ${precio})
+      RETURNING *
+    `;
+    res.status(201).json(newConcert);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Database error" });
+  }
 };
 
 // Actualizar concierto
-exports.updateConcert = async (req, res) => {
+export const updateConcert = async (req, res) => {
   const { id } = req.params;
   const { artista, ciudad, fecha, precio } = req.body;
 
-  const result = await pool.query(
-    "UPDATE concerts SET artista=$1, ciudad=$2, fecha=$3, precio=$4 WHERE id=$5 RETURNING *",
-    [artista, ciudad, fecha, precio, id]
-  );
+  try {
+    const [updatedConcert] = await sql`
+      UPDATE concerts
+      SET artista = ${artista}, ciudad = ${ciudad}, fecha = ${fecha}, precio = ${precio}
+      WHERE id = ${id}
+      RETURNING *
+    `;
 
-  if (result.rows.length === 0) {
-    return res.status(404).json({ message: "Concert not found" });
+    if (!updatedConcert) {
+      return res.status(404).json({ message: "Concert not found" });
+    }
+
+    res.json(updatedConcert);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Database error" });
   }
-
-  res.json(result.rows[0]);
 };
 
 // Eliminar concierto
-exports.deleteConcert = async (req, res) => {
+export const deleteConcert = async (req, res) => {
   const { id } = req.params;
 
-  const result = await pool.query(
-    "DELETE FROM concerts WHERE id=$1 RETURNING *",
-    [id]
-  );
+  try {
+    const [deletedConcert] = await sql`
+      DELETE FROM concerts WHERE id = ${id} RETURNING *
+    `;
 
-  if (result.rows.length === 0) {
-    return res.status(404).json({ message: "Concert not found" });
+    if (!deletedConcert) {
+      return res.status(404).json({ message: "Concert not found" });
+    }
+
+    res.json({ message: "Concert deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Database error" });
   }
-
-  res.json({ message: "Concert deleted" });
 };
 
 // Obtener todos (sin paginación para admin)
-exports.getAllConcertsAdmin = async (req, res) => {
-  const result = await pool.query("SELECT * FROM concerts ORDER BY fecha DESC");
-  res.json(result.rows);
+export const getAllConcertsAdmin = async (req, res) => {
+  try {
+    const concerts = await sql`
+      SELECT * FROM concerts ORDER BY fecha DESC
+    `;
+    res.json(concerts);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Database error" });
+  }
 };

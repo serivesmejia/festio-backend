@@ -1,7 +1,7 @@
-const pool = require("../db");
+import sql from "../db.js";
 
 // Comprar boletos
-exports.buyTickets = async (req, res) => {
+export const buyTickets = async (req, res) => {
   const { concertId, quantity } = req.body;
   const userId = req.user.id;
 
@@ -10,34 +10,36 @@ exports.buyTickets = async (req, res) => {
   }
 
   try {
-    const concert = await pool.query(
-      "SELECT * FROM concerts WHERE id=$1",
-      [concertId]
-    );
+    const [concert] = await sql`
+      SELECT *
+      FROM concerts
+      WHERE id = ${concertId}
+    `;
 
-    if (concert.rows.length === 0) {
+    if (!concert) {
       return res.status(404).json({ message: "Concert not found" });
     }
 
-    const ticket = await pool.query(
-      "INSERT INTO tickets (user_id, concert_id, quantity) VALUES ($1,$2,$3) RETURNING *",
-      [userId, concertId, quantity]
-    );
+    const [ticket] = await sql`
+      INSERT INTO tickets (user_id, concert_id, quantity)
+      VALUES (${userId}, ${concertId}, ${quantity})
+      RETURNING *
+    `;
 
-    res.status(201).json(ticket.rows[0]);
+    res.status(201).json(ticket);
 
   } catch (error) {
+    console.error("Error buying tickets:", error);
     res.status(500).json({ message: "Error buying tickets" });
   }
 };
 
 // Ver boletos del usuario
-exports.getMyTickets = async (req, res) => {
+export const getMyTickets = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    const tickets = await pool.query(
-      `
+    const tickets = await sql`
       SELECT 
         tickets.id,
         concerts.artista,
@@ -46,14 +48,13 @@ exports.getMyTickets = async (req, res) => {
         tickets.quantity
       FROM tickets
       JOIN concerts ON concerts.id = tickets.concert_id
-      WHERE tickets.user_id = $1
-      `,
-      [userId]
-    );
+      WHERE tickets.user_id = ${userId}
+    `;
 
-    res.json(tickets.rows);
+    res.json(tickets);
 
-  } catch {
+  } catch (error) {
+    console.error("Error fetching tickets:", error);
     res.status(500).json({ message: "Error fetching tickets" });
   }
 };

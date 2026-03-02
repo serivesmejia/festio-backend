@@ -1,8 +1,5 @@
-const { Pool } = require("pg");
+const postgres = require("postgres");
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+const sql = postgres(process.env.DATABASE_URL, { ssl: { rejectUnauthorized: false } });
 
-module.exports = pool;
+module.exports = sql;
