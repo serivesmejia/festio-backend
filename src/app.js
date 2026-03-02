@@ -5,11 +5,14 @@ const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
 const concertRoutes = require("./routes/concertRoutes");
 const weatherRoutes = require("./routes/weatherRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.use("/admin", adminRoutes);
 
 app.use("/auth", authRoutes);
 app.use("/concerts", concertRoutes);

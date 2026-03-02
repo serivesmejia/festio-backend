@@ -19,7 +19,3 @@ exports.getConcerts = async (req, res) => {
     data: concerts.rows
   });
 };
-
-exports.getAdminData = async (req, res) => {
-  res.json({ secret: "Admin only data" });
-};
