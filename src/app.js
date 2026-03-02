@@ -6,6 +6,7 @@ const authRoutes = require("./routes/authRoutes");
 const concertRoutes = require("./routes/concertRoutes");
 const weatherRoutes = require("./routes/weatherRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const ticketRoutes = require("./routes/ticketRoutes");
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use("/admin", adminRoutes);
 app.use("/auth", authRoutes);
 app.use("/concerts", concertRoutes);
 app.use("/weather", weatherRoutes);
+app.use("/tickets", ticketRoutes);
 
 // Middleware error centralizado
 app.use((err, req, res, next) => {
